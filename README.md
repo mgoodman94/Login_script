@@ -30,8 +30,8 @@ Python login script. Allows users to register an account, or log in to an existi
     - password is hashed with sha256 hashing.
     - if username and hashed password match an existing account in the SQL table, welcome the user.
     
-### Author
+## Author
   - Matthew H Goodman
   
-### Acknowledgments 
+## Acknowledgments 
   - Robert Heaton for the project idea and guidance.
