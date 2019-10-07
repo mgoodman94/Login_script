@@ -34,4 +34,4 @@ Python login script. Allows users to register an account, or log in to an existi
   - Matthew H Goodman
   
 ## Acknowledgments 
-  - Robert Heaton for the project idea and guidance.
+  - Robert Heaton (http://www.robertheaton.com) for the project idea and guidance.
