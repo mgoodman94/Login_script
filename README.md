@@ -3,7 +3,7 @@ Python login script. Allows users to register an account, or log in to an existi
 
 ## Getting Started
 ### Part 1
-  - <u>Script</u>: login_hashed.py
+  - <i>Script</i>: login_hashed.py
   - Asks user to either 'register' or 'login'.
   - If 'register' is selected: 
     - user will be asked to create a username and password.
@@ -16,7 +16,7 @@ Python login script. Allows users to register an account, or log in to an existi
     - if username and hashed password match an existing account, return True
     
 ### Part 2
-  - <u>Script</u>: login_sql.py
+  - <i>Script</i>: login_sql.py
   - If SQL database does not exist, one will be created.
   - If SQL table for username and password does not exist, one will be created.
   - Asks user to either 'register' or 'login'.
