@@ -1,42 +1,26 @@
 import hashlib
-import json
 import os
 import sqlite3
 from getpass import getpass
 
-path = "C:/Users/16102/Documents/Advanced Beginner Projects/login"
-os.chdir(path)
-
-# connect to sqlite3
-conn = sqlite3.connect(os.path.join(path, "users_db.db"))
-c = conn.cursor()
-
-
-def setup_db():   
+def setup_db(cursor):
     # creates table in database
-    users_db = '''
+    cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
         username TEXT PRIMARY KEY,
         password TEXT
         );
-        '''
-    c.execute(users_db)
+        ''')
 
-
-def ask_recreate():
+def count_users(cursor):
     # count users and ask to recreate db
     count_users = '''SELECT * FROM users;'''
     c.execute(count_users)
-    num_users = len(c.fetchall())
-    
-    print("Your users table currently holds %d users." % num_users)
-    
-    del_table = input("Would you like to delete the current table and start over? (y/n): ")
-    if del_table.lower().strip() in ['y', 'yes']:
-        del_stmt = '''DROP TABLE users;'''
-        c.execute(del_stmt)
-        
-    setup_db()
+    return len(c.fetchall())
+
+
+def drop_user_table(cursor):
+    cursor.execute("DROP TABLE users;")
 
 
 def show_db():
@@ -48,7 +32,7 @@ def show_db():
         print(row)   
 
 
-def sha_encrypt(pw):
+def sh256(pw):
     # sha256 hashing
     encode_hash = hashlib.sha256(pw.encode())
     hash_pw = encode_hash.hexdigest() 
@@ -56,60 +40,84 @@ def sha_encrypt(pw):
     return hash_pw
 
 
-def register():   
-    username = input("Please enter a username: ").lower()
-    
-    # ensure passwords match      
-    invalid = True
-    while invalid:
-        pw = getpass("Please enter a password: ")
-        pw2 = getpass("Please confirm your password: ")
-        
-        if pw == pw2:
-            invalid = False
-        elif pw != pw2:
-            print("Passwords are not the same")
-
+def register(c, username, pw)
     # hash password
-    hash_pw = sha_encrypt(pw)
+    hash_pw = sh256(pw)
             
     # save to sqlite3 database. Return error if username taken
     try:
-        insert_user = "INSERT INTO users VALUES (?, ?);"
-        c.execute(insert_user, (username, hash_pw))
+        c.execute(
+            "INSERT INTO users VALUES (?, ?);"
+            (username, hash_pw)
+        )
+        return True
     except sqlite3.IntegrityError:
-        print("ERROR: Username already exists")
-        register()
+        return False
     
 
-def is_valid_credentials():
-    # get username and password and check if they match db users
-    username = input("Please enter a username: ")
-    pw = getpass("Please enter a password: ")
-    hash_pw = sha_encrypt(pw)
+def is_valid_credentials(cursor, username, pw):
+    hash_pw = sh256(pw)
     
     # execute sqlite3 command. Returns None if doesn't exist
-    select_users = '''SELECT * FROM users WHERE username=? AND password=?;'''
-    c.execute(select_users, (username, hash_pw))
-    if c.fetchone() is not None:
-        print("Welcome")
-    else:
-        print("Login failed. Username or password is incorrect.")
+    cursor.execute(
+         '''SELECT * FROM users WHERE username=? AND password=?;'''
+         (username, hash_pw)
+    )
+    return cursor.fetchone() is not None
 
     
 def main():
-    setup_db()
-    ask_recreate()
+    path = "C:/Users/16102/Documents/Advanced Beginner Projects/login/Part 2_SQL"
+    os.chdir(path)
+
+    # connect to sqlite3
+    conn = sqlite3.connect(os.path.join(path, "users_db.db"))
+    c = conn.cursor()
+
+    setup_db(c)
+
+    num_users = count_users(c)
+    print("Your users table currently holds %d users." % num_users)
+    
+    user_resp = input("Would you like to delete the current table and start over? (y/n): ")
+    if user_resp.lower().strip() in ['y', 'yes']:
+        drop_user_table(c)
+        setup_db(c)
         
     # ask to register or login
     undecided = True
     while undecided:
         log_type = input("Would you like to register or login? Type register or login: ")
         if log_type.strip().lower() == "register":
-            register()
+            username = input("Please enter a username: ").lower()
+            
+            # ensure passwords match      
+            while True:
+                pw = getpass("Please enter a password: ")
+                pw2 = getpass("Please confirm your password: ")
+                
+                if pw == pw2:
+                    break
+                else:
+                    print("Passwords are not the same")
+
+            success = register(c, username, pw)
+            if success:
+                print("Success!")
+            else:
+                print("ERROR: Username already exists")
+
             break
         elif log_type.strip().lower() == "login":
-            is_valid_credentials()
+            # get username and password and check if they match db users
+            username = input("Please enter a username: ")
+            pw = getpass("Please enter a password: ")
+
+            if is_valid_credentials(c, username, pw)
+                print("Welcome")
+            else:
+                print("Login failed. Username or password is incorrect.")
+
             break
         else:
             print("Please type a valid response")
